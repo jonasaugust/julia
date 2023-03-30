@@ -2317,7 +2317,14 @@ function isvalid_pkgimage_crc(f::IOStream, ocachefile::String)
     seek(f, filesize(f) - 8)
     expected_crc_so = read(f, UInt32)
     crc_so = open(_crc32c, ocachefile, "r")
-    expected_crc_so == crc_so
+    if expected_crc_so == crc_so
+        return true
+    elseif Sys.isapple() && occursin(ocachefile, "usr/share/julia/stdlib")
+        @debug "isvalid_pkgimage_crc: ignoring bad pkgimage crc for stdlib" ocachefile expected_crc_so crc_so
+        return true
+    else
+        return false
+    end
 end
 
 struct CacheHeaderIncludes
